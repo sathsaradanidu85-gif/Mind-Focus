@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🧠 Mind Focus App</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0f172a, #020617 60%, #020617);
+      font-family: system-ui, Segoe UI, Roboto, sans-serif;
+      color: #e5e7eb;
+      overflow: hidden;
+    }
+
+    body::before, body::after {
+      content: "";
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(56,189,248,0.25), transparent 70%);
+      filter: blur(40px);
+      animation: float 12s ease-in-out infinite;
+    }
+
+    body::before { top: -80px; left: -80px; }
+    body::after  { bottom: -100px; right: -100px; animation-delay: 6s; }
+
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(30px); }
+    }
+
+    .app {
+      position: relative;
+      background: linear-gradient(180deg, rgba(15,23,42,0.95), rgba(2,6,23,0.95));
+      border-radius: 26px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+      padding: 30px 26px 26px;
+      width: 340px;
+      text-align: center;
+      border: 1px solid rgba(148,163,184,0.15);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 4px;
+      color: #38bdf8;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 18px;
+    }
+
+    .time-picker {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .time-picker input {
+      width: 70px;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.2);
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .timer {
+      font-size: 48px;
+      font-weight: 700;
+      color: #22c55e;
+      margin-bottom: 14px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(148,163,184,0.2);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 22px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      border-radius: 999px;
+      box-shadow: 0 0 12px rgba(34,197,94,0.7);
+      transition: width 0.5s linear;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,0.15);
+      font-size: 14px;
+      cursor: pointer;
+      background: linear-gradient(180deg, #0f172a, #020617);
+      color: #e5e7eb;
+      transition: 0.25s;
+    }
+
+    button:hover {
+      background: linear-gradient(180deg, #1e293b, #020617);
+      transform: translateY(-1px);
+    }
+
+    .breath {
+      margin-top: 22px;
+      font-size: 14px;
+      color: #cbd5f5;
+    }
+
+    .circle {
+      width: 120px;
+      height: 120px;
+      margin: 14px auto 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at top, #38bdf8, #0ea5e9 60%, #0284c7);
+      animation: breathe 8s ease-in-out infinite;
+      box-shadow: 0 0 30px rgba(56,189,248,0.4);
+    }
+
+    @keyframes breathe {
+      0% { transform: scale(0.7); opacity: 0.6; }
+      50% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.7); opacity: 0.6; }
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>🧠 Mind Focus</h1>
+    <div class="subtitle">Choose your focus time</div>
+
+    <div class="time-picker">
+      <input type="number" id="minutes" min="1" value="25" />
+      <span>min</span>
+    </div>
+
+    <div class="timer" id="timer">25:00</div>
+
+    <div class="progress-track">
+      <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <div class="controls">
+      <button onclick="startFocus()">Start</button>
+      <button onclick="pauseFocus()">Pause</button>
+      <button onclick="resetFocus()">Reset</button>
+    </div>
+
+    <div class="breath">Inhale as it grows • Exhale as it shrinks</div>
+    <div class="circle"></div>
+
+    <div class="footer">Custom Time • Focus • Offline</div>
+  </div>
+
+  <script>
+    let duration = 25 * 60;
+    let remaining = duration;
+    let interval = null;
+
+    const timerEl = document.getElementById('timer');
+    const progressEl = document.getElementById('progress');
+    const minutesInput = document.getElementById('minutes');
+
+    function updateTimer() {
+      const min = Math.floor(remaining / 60);
+      const sec = remaining % 60;
+      timerEl.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+
+      const percent = ((duration - remaining) / duration) * 100;
+      progressEl.style.width = percent + '%';
+    }
+
+    function startFocus() {
+      if (interval) return;
+
+      if (remaining === duration) {
+        duration = parseInt(minutesInput.value || 1) * 60;
+        remaining = duration;
+        updateTimer();
+      }
+
+      interval = setInterval(() => {
+        if (remaining > 0) {
+          remaining--;
+          updateTimer();
+        } else {
+          clearInterval(interval);
+          interval = null;
+          alert('✨ Focus session complete!');
+        }
+      }, 1000);
+    }
+
+    function pauseFocus() {
+      clearInterval(interval);
+      interval = null;
+    }
+
+    function resetFocus() {
+      pauseFocus();
+      duration = parseInt(minutesInput.value || 1) * 60;
+      remaining = duration;
+      updateTimer();
+    }
+
+    updateTimer();
+  </script>
+</body>
+</html>
